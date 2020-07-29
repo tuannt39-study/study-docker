@@ -1,0 +1,65 @@
+version: "3" #Chọn viết theo phiên bản 3 https://docs.docker.com/compose/compose-file/
+#Tạo network
+networks:
+  my-network:
+    driver: bridge
+#Tạo ổ đĩa
+volumes:
+  dir-site: #Ổ đĩa này lưu ở lab12
+    driver_opts:
+      device: /home/tuannt4/Documents/devops/docker/tuts/xuanthulab/data/lab12 #Đảm bảo phải có thư mục lab12
+      o: bind
+      type: none
+#Các dịch vụ nằm trong services
+services:
+  pro-memcached: #Dịch vụ thứ 1 memcached
+    image: "memcached:latest" #Image tạo ra dịch vụ
+    container_name: c-memcached-1 #Tên container khi chạy
+    restart: always #Tự động khởi động lại khi dừng container
+    hostname: memcached #Tên host của container
+    networks:
+      - my-network #Kết nối tới mạng my-network
+    command:
+      - "--conn-limit=2048" #Giới hạn kết nối là 2048
+      - "--memory-limit=2048" #Giới hạn cho phép dùng tới 2048MB bộ nhớ làm cache
+  xtlab-apache: #Dịch vụ HTPPD
+    image: "httpd:version2"
+    container_name: c-httpd1
+    restart: always
+    hostname: httpd
+    networks:
+      - my-network
+    ports:
+      - "8080:80" #Mở cổng 8080 của máy host ánh xạ vào cổng 80 của container
+      - "443:443"
+    volumes:
+      - dir-site:/home #Ánh xạ ổ đĩa dir-site vào /home của container
+      - ./httpd/httpd.conf:/usr/local/apache2/conf/httpd.conf #Ánh xạ file từ máy host vào container
+  xtlab-mysql:
+    image: "mysql:8.0.20"
+    container_name: c-mysql1
+    restart: always
+    hostname: mysql
+    networks:
+      - my-network
+    ports:
+      - "3304:3304"
+    volumes:
+      - dir-site:/home
+      - /home/tuannt4/Documents/devops/docker/tuts/xuanthulab/data/lab12/mysql/db:/var/lib/mysql
+    environment: #Thêm các biến môi trường
+      - MYSQL_ROOT_PASSWORD=123abc
+      - MYSQL_DATABASE=db_site
+      - MYSQL_USER=siteuser
+      - MYSQL_PASS=sitepass
+  xtlab-php:
+    build:
+      dockerfile: Dockerfile
+      context: ./php
+    container_name: c-php1
+    restart: always
+    hostname: php
+    networks:
+      - net-work
+    volumes:
+      - dir-site:/home

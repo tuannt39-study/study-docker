@@ -1,0 +1,102 @@
+
+Cài đặt WorkPress
+https://xuanthulab.net/mang-network-bridge-trong-docker-ket-noi-cac-container-voi-nhau.html
+
+Truy cập https://wordpress.org/download/ tải wordpress xuống và giải nén vào thư mục /home/tuannt4/Documents/devops/docker/tuts/xuanthulab/data/www
+
+Truy cập vào c-httpd và cài đặt wordpress
+docker exec -it c-httpd bash
+http://localhost:9999/index.php
+
+Khi cấu hình các thông tin database xong sẽ xuất hiện lỗi
+Ta sẽ xem log xem nguyên nhân vì sao
+docker logs c-httpd
+docker logs c-php
+
+Ta phải cài 1 extension để hỗ trợ php kết nối đến server mysql
+docker exec -it c-php bash
+
+Liệt kê các extension và cài 
+php -m
+docker-php-ext-install mysqli
+docker-php-ext-install pdo_mysql
+
+Thoát khỏi c-php, khởi động lại c-php
+docker restart c-php
+docker exec -it c-php bash
+php -m
+
+Tiếp tục F5 để reload lại http://localhost:9999/wp-admin/setup-config.php?step=2
+Ta thấy lỗi: This either means that the username and password information in your wp-config.php file is incorrect or we can’t contact the database server at c-mysql.
+This could mean your host’s database server is down.
+
+Truy cập vào c-php thử ping đến c-mysql
+apt update
+apt install iputils-ping -y
+ping c-mysql
+
+Kiểm tra c-mysql đang kết nối mạng bridge
+Kiểm tra c-php đang kết nối mạng www-net
+Nên c-php không kết nối đến c-mysql được
+Giờ ta sẽ kết nối c-mysql đến mạng www-net
+docker network connect www-net c-mysql
+
+Tiếp tục thử lại (Try again)
+Lỗi: Can’t select database
+We were able to connect to the database server (which means your username and password is okay) but not able to select the wordpress database.
+
+Ta tạo mới 1 database và gán quyền testuser cho database này
+docker exec -it c-mysql bash
+mysql -uroot
+create database wp_wordpress;
+grant all privileges on db_testdb.* to 'testuser'@'%';
+flush privileges;
+
+Rồi thử lại nhập đúng các thông tin database, user, pass,...
+Tiếp theo nếu báo lỗi phải tạo wp-config.php thì làm theo hướng dẫn rồi nhấn -> Run the installation
+
+Tiếp tục nhập các thông tin cần thiết:
+Username: admin
+Password:  XQgQjK2UlM!peyfZQg
+
+Khi đã cài đặt xong
+Login bằng tài khoản admin
+
+Do apache chưa cấu hình tự động truy cập vào index.php
+http://localhost:9999/wp-admin/index.php
+
+Cấu hình lại httpd để truy cập vào index.php
+<IfModule dir_module>
+    DirectoryIndex index.html index.php
+</IfModule>
+
+Rồi restart lại c-httpd
+docker rm -f c-httpd
+docker run --network www-net --name c-httpd -h httpd -p 9999:80 -p 443:443 -v DATA:/home/data -v /home/tuannt4/Documents/devops/docker/tuts/xuanthulab/data/httpd.conf:/usr/local/apache2/conf/httpd.conf httpd:2.4.43
+
+Xóa file index.html từ các lab trước đi
+Rồi truy cập http://localhost:9999/
+
+---------------------------------------------------------------------
+
+docker-cheat-sheet
+
+Liệt kê network
+docker network ls
+
+Tạo network
+docker network create --driver bridge my-network
+
+Xóa network
+docker network rm my-network
+
+Thông tin network
+docker network inspect my-network
+
+Tạo container gán với network
+docker run -it --name B3 --network my-network busybox
+
+Kết nối container với network khác
+docker network connect bridge B3
+
+---------------------------------------------------------------------

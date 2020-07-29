@@ -1,0 +1,120 @@
+
+Làm quen với Docker tạo container
+https://xuanthulab.net/gioi-thieu-ve-docker-lam-quen-voi-docker-tao-container.html
+
+Image
+Image trong docker là những phần mềm được đóng gói và quản lý bởi docker.
+Trong docker các image chỉ có thể đọc, không thể sửa đổi. Khi image được docker khởi chạy thì
+phiển bản thực thi của image được gọi là các container. Các container thì có thể ghi được các
+dữ liệu vào trong đó. Như vậy để có container qua đó chúng ta chạy các ứng dụng, chúng ta
+phải có các image trước.
+
+Liệt kê các image
+docker images
+
+Những image được lấy từ những kho chứa được gọi là registry. Mặc định https://hub.docker.com
+
+Tìm kiếm image
+docker search ubuntu
+
+Tải image
+docker pull ubuntu:20.10
+
+Xóa image
+docker image rm ubuntu:20.10
+docker image rm c7c37e472d31
+
+Từ những image đã tải xuống, chúng ta yêu cầu docker khởi chạy nó. Khi image chạy thì phiên bản thực
+thi của image chúng ta gọi là các container
+
+Chạy các container
+docker run -i -t ubuntu
+docker run -it 74435f89ab78
+
+Liệt kê các container
+docker ps
+docker ps -a
+
+Khởi chạy các container đang dừng
+docker start 7c488bc96030
+
+Đang ở ngoài máy host muốn vào lại container, nó sẽ kết nối luôn với terminal
+docker attach 7c488bc96030
+
+Thoát
+exit
+
+Thoát, vẫn giữ container
+Ctrl + P + Q
+
+Dừng container
+docker stop 7c488bc96030
+docker stop centosA
+
+Chạy container với các thông tin bổ sung như name, hostname
+docker run -it --name centosA -h centos1 centos
+
+Xóa container
+docker rm 7c488bc96030
+docker rm centosA
+docker rm -f 2e1f3151f8f8
+
+---------------------------------------------------------------------
+
+docker-cheat-sheet
+
+Kiểm tra phiên bản docker
+docker --version
+
+Thông tin hệ thống docker
+docker info
+
+Liệt kê các image
+docker images -a
+
+Tải image
+docker pull ubuntu:20.10
+
+Liệt kê các image
+docker images -a
+
+Xóa image
+docker image rm ubuntu
+
+Liệt kê các container
+docker ps
+docker ps -a
+docker container ls
+docker container ls -a
+
+Chạy container
+docker run -it ubuntu
+
+Tạo, chạy container, tự xóa khi kết thúc
+docker run -it --rm ubuntu
+
+Khi container chạy, thi hành ngay 1 lệnh nào đó
+docker run -it --rm ubuntu ls -la
+
+Ánh xạ thư mục máy host vào thư mục của container
+docker run -it --rm -v /home/tuannt4/Documents/devops/docker/tuts/share-data:/home/data ubuntu
+
+Vào container đang chạy
+docker container attach ubuntu1
+
+Chạy container đang dừng
+docker container start -i ubuntu1
+docker start -i ubuntu1
+
+Xóa container
+docker container rm ubuntu1
+docker rm ubuntu1
+docker rm -f ubuntu1
+
+Thoát terminal vẫn giữ container đang chạy
+Ctrl + P + Q
+
+Chạy 1 lệnh container đang chạy
+docker exec -it ubuntu1 bash
+
+---------------------------------------------------------------------

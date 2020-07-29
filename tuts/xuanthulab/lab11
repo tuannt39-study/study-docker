@@ -1,0 +1,158 @@
+
+Sử dụng Dockerfile để tự động tạo các image trong Docker
+https://xuanthulab.net/su-dung-dockerfile-de-tu-dong-tao-cac-image-trong-docker.html
+
+Yêu cầu:
+Xây dựng 1 image mới từ image cơ sở centos:8.2.2004
+Image mới này được cài đặt sẵn httpd, htop, ping (mặc định có), vim
+Copy 1 số file dữ liệu index.html vào /var/wwww/html
+Chạy nền httpd khi container chạy từ image
+
+Tải image
+docker pull centos:8.2.2004
+
+Chuẩn bị thư mục dữ liệu của lab11
+/home/tuannt4/Documents/devops/docker/tuts/xuanthulab/data/lab11
+Tạo file test.html với nội dung cơ bản
+
+Khởi chạy container từ image cơ sở centos:8.2.2004
+docker run -it --name centos-lab11 -h centos centos:8.2.2004
+
+Trong container vừa khởi chạy, cài đặt các ứng dụng, phần mềm được yêu cầu
+dnf update -y
+dnf install httpd httpd-tools vim -y
+
+Kiểm tra ping mặc định có
+ping google.com
+
+Kiểm tra httpd
+httpd -v
+
+Kiểm tra vim
+vi
+
+htop nằm ở kho phân phối mở rộng của centos, nên ta phải cài đặt trước
+dnf install epel-release -y
+dnf update -y
+dnf install htop -y
+
+Kiểm tra htop
+htop
+
+Giờ tiến hành copy file dữ liệu, kiểm tra container đang chạy
+centos-lab11 (24a8a880b0ac)
+
+Ra ngoài máy host rồi copy file yêu cầu vào container
+Ctrl + P + Q
+docker cp /home/tuannt4/Documents/devops/docker/tuts/xuanthulab/data/lab11/test.html centos-lab11:/var/wwww/html
+
+Vào container kiểm tra test.html trong thư mục /var/wwww/html
+
+Như vậy chúng ta đã có 1 container đạt đủ các yêu cầu, giờ chỉ cần tạo image từ container này là được
+Container này phải ở trạng thái dừng
+docker commit centos-lab11 image-lab11:1.0
+
+Kiểm tra image đã được tạo hay chưa
+docker images
+
+Giờ không cần container centos-lab11 nữa nên ta sẽ xóa đi
+docker rm centos-lab11
+
+Chạy thử 1 container từ image vừa tạo, chạy nền httpd, chạy xong xóa luôn, 
+docker run --rm --name centos-lab11 -h centos -p 9876:80 image-lab11:1.0 httpd -D FOREGROUND
+
+Test
+http://localhost:9876/
+http://localhost:9876/test.html
+
+Như vậy là ta đã hoàn thành tạo 1 image đáp ứng được yêu cầu đề bài
+Toàn bộ những thao tác mà để ta tạo ra image-lab11 này, có thể gộp nó thành những chỉ thị lưu trong dockerFile
+Sau đó chúng ta sử dụng lệnh docker để tự động xây dựng image mới
+
+Tạo Dockerfile
+
+Liệt kê lại các bước cần thực hiện
+docker run -it --name centos-lab11 -h centos centos:8.2.2004
+dnf update -y
+dnf install httpd httpd-tools vim epel-release -y
+dnf update -y
+dnf install htop -y
+docker cp /home/tuannt4/Documents/devops/docker/tuts/xuanthulab/data/lab11/test.html centos-lab11:/var/wwww/html
+docker commit centos-lab11 image-lab11:1.0
+
+Giờ chúng ta sẽ chuyển toàn bộ các bước, thao tác trên thành các chỉ thị lưu trong Dockerfile
+
+Để sử dụng Dockerfile thành image ta sử dụng câu lệnh sau:
+docker build -t image-lab11:1.1 -f Dockerfile .
+
+Tạo container từ image vừa tạo để kiểm tra
+docker run -it --name centos-lab11 -h centos -p 9876:80 image-lab11:1.1
+
+-
+
+Các chỉ thị của Dockerfile
+
+Chỉ định image cơ sở
+FROM
+
+Sao chép dữ liệu
+ADD
+COPY
+
+Thiết lập biến môi trường
+ENV
+
+Chạy các lệnh
+RUN
+
+Gắn ổ đĩa, thư mục
+VOLUME
+
+User
+USER
+
+Thư mục làm việc
+WORKDIR
+
+Thiết lập cổng
+EXPOSE
+
+-
+
+Giảm số lượng layer hình thành nên image
+
+Kết hợp, viết ít chỉ thị nhất có thể
+
+FROM centos:8.2.2004
+RUN dnf update -y
+RUN dnf install httpd httpd-tools vim epel-release -y
+RUN dnf update -y
+RUN dnf install htop -y
+WORKDIR /var/www/html/
+EXPOSE 80
+ADD ./test.html /var/www/html/
+ENTRYPOINT [ "httpd" ]
+CMD [ "-D", "FOREGROUND" ]
+
+FROM centos:8.2.2004
+RUN yum update -y \
+  && yum install httpd httpd-tools vim epel-release -y \
+  && yum update -y \
+  && yum install htop -y
+EXPOSE 80
+ADD . /var/www/html
+ENTRYPOINT ["/usr/sbin/httpd", "-D", "FOREGROUND"]
+
+-
+
+---------------------------------------------------------------------
+
+docker-cheat-sheet
+
+Dockerfile thành image
+docker build -t myimage1:1.1 --force-fm -f Dockerfile .
+
+Xóa image tạm
+docker image prune
+
+---------------------------------------------------------------------

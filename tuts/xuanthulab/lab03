@@ -1,0 +1,50 @@
+
+Cập nhật Image lưu Image ra file và nạp Image từ file trong Docker
+https://xuanthulab.net/cap-nhat-image-luu-image-ra-file-va-nap-image-tu-file-trong-docker.html
+
+Tải image ubuntu
+docker pull ubuntu
+
+Chạy image ubuntu
+docker run -it --name U1 -h ubuntu1 ubuntu
+
+Đang ở ngoài máy host muốn sử dụng 1 lệnh trong container
+docker exec U1 ls
+
+Đang ở ngoài máy host muốn kết nối luôn với terminal (tương đương lệnh attach)
+docker exec -it U1 bash
+
+Cài 1 số phần mềm vào container U1 đã tạo
+apt update -y
+apt install htop vim -y
+
+Container phải ở trạng thái dừng mới sử dụng được lệnh commit
+Chuyển đổi container U1 thành 1 image
+docker commit U1 ubuntu-vim:1.0
+
+Lưu image thành 1 file
+docker save --output myimage.tar ubuntu-vim:1.0
+
+Tải image từ file
+docker load -i myimage.tar
+
+Gán tag nếu image không có
+docker tag 0eca3aa8b777 ubuntu-vim:2.0
+
+---------------------------------------------------------------------
+
+docker-cheat-sheet
+
+Lưu container thành image
+docker commit ubuntu1 myimage:1.1
+
+Lưu image ra file
+docker save --ouput myimage.tar myimage
+
+Nạp image từ file
+docker load -i myimage.tar
+
+Đổi tên image
+docker tag myimage myimage1:1.1
+
+---------------------------------------------------------------------

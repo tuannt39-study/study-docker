@@ -1,0 +1,124 @@
+
+Lệnh docker-compose tạo và chạy các dịch vụ Docker
+https://xuanthulab.net/lenh-docker-compose-tao-va-chay-cac-dich-vu-docker.html
+
+File docker-compose.yml gần giống ý nghĩa với file Dockerfile đã tìm hiểu trong Sử dụng Dockerfile,
+là một file text, viết với định dạng YAML (Ain’t Markup Language, đọc nhanh định dạng Định dạng YML)
+là cấu hình để tử đó lệnh docker compose sinh ra và quản lý các service (container),
+các network, các ổ đĩa ... cho một ứng dụng hoàn chỉnh.
+
+-
+
+Yêu cầu bài tập:
+PHP
+docker pull php:8.0-rc-fpm
+port 9000
+Cài mysqli, pdo_mysql
+  docker-php-ext-install mysqli pdo_mysql
+Thư mục làm việc /home/sites/site1
+
+HTTPD
+docker pull httpd:2.4.43
+port 80, 443
+Cấu hình /usr/local/apache2/conf/httpd.conf
+  Nạp mod_proxy, mod_proxy_fcgi
+  Thư mục làm việc /home/sites/site1
+  index mặc định index.php
+  PHP Handler: AddHandler "proxy:fcgi://product-php:9000" .php
+
+MySQL
+docker pull mysql:8.0.20
+port 3304
+Theo hướng dẫn thì cũng phải trích xuất file config /etc/mysql/my.cnf /home/my.cnf
+  để xác thực default-authentication-plugin=mysql_native_password
+  nhưng khi xác thực thì bị lỗi, bỏ qua dùng cấu hình mặc định thì ok
+Database /var/lib/mysql -> lab12/db
+MYSQL_ROOT_PASSWORD: 123abc
+MYSQL_DATABASE: dbsite
+MYSQL_USER: siteuser
+MYSQL_PASS: sitepass
+
+NETWORK
+bridge
+my-network
+
+VOLUME
+dir-site
+  bind, devide = /lab12
+
+-
+
+Chuẩn bị file cấu hình, file dữ liệu,... để xây dựng lên hệ thống theo yêu cầu
+
+PHP
+Dịch vụ chạy php thì ta sẽ cài bản 8.0-rc-fpm
+Sau khi chạy phải có kích hoạt mysqli, pdo_mysql do đó ta sẽ tạo 1 image mới mà nó đã kích hoạt sẵn
+2 phần mở rộng này. Ta sẽ mô tả, tạo image mới này dựa trên Dockerfile
+
+HTTPD
+Không cần xây dụng image riêng
+Khi chạy có cấu hình lại file config /usr/local/apache2/conf/httpd.conf
+Ta sẽ trích xuất ra file config mặc định, rồi cấu hình lại theo yêu cầu bài tập
+docker run --rm -v /home/tuannt4/Documents/devops/docker/tuts/xuanthulab/data/lab12/httpd:/home/sites/site1 httpd:2.4.43 cp /usr/local/apache2/conf/httpd.conf /home/sites/site1
+
+MySQL
+Theo hướng dẫn thì cũng phải trích xuất file config /etc/mysql/my.cnf /home/my.cnf
+để xác thực default-authentication-plugin=mysql_native_password
+nhưng khi xác thực thì bị lỗi, bỏ qua dùng cấu hình mặc định thì ok
+
+-
+
+Tạo docker-compose.yml
+cd /home/tuannt4/Documents/devops/docker/tuts/xuanthulab/data/lab12
+docker-compose up
+
+Truy cập http://localhost:9999/ thấy httpd đã làm việc
+Cài đặt Joomla
+Tải Joomla, giải nén về /home/tuannt4/Documents/devops/docker/tuts/xuanthulab/data/lab12/sites/site1
+Thử cài đặt
+Xóa _JoomlaEitHJ49EyYUjbhwzwzgLT.txt trong /home/tuannt4/Documents/devops/docker/tuts/xuanthulab/data/lab12/sites/site1/installation
+
+Nếu lỗi ở phần cấu hình database, thì truy cập vào product-mysql để tạo user, database mới
+create user 'testuser'@'%' identified by 'testpass';
+select User from user;
+create database db_testdb;
+show databases;
+grant all privileges on db_testdb.* to 'testuser'@'%';
+flush privileges;
+show databases;            
+exit;
+
+---------------------------------------------------------------------
+
+docker-cheat-sheet
+
+Một số lệnh docker-compose
+cd /home/tuannt4/Documents/devops/docker/tuts/xuanthulab/data/lab12
+
+Dừng các container
+docker-compose stop
+
+Chạy lại các container
+docker-compose start
+
+Khởi động lại các container
+docker-compose restart
+
+Dừng, xóa các container, network,...
+docker-compose down
+
+Liệt kê các container được chạy từ docker-compose
+docker-compose ps
+docker-compose ps --service
+
+Xem các container được chạy từ image nào
+docker-compose images
+
+Thực hành lệnh bash với service đang chạy
+docker-compose exec my-php bash
+
+Xem log
+doceker-compose logs
+doceker-compose logs my-php my-httpd
+
+---------------------------------------------------------------------

@@ -1,0 +1,54 @@
+
+Chia sẻ dữ liệu giữa Docker Host và Container
+https://xuanthulab.net/chia-se-du-lieu-giua-docker-host-va-container.html
+
+Liệt kê các ổ đĩa volume
+docker volume ls
+
+Tạo ổ đĩa
+docker volume create D1
+docker volume create D2
+
+Tạo ổ đĩa ánh xạ đến 1 thư mục của máy host
+docker volume create --opt device=/home/tuannt4/Documents/devops/docker/tuts/share-data --opt type=none --opt o=bind D3
+
+Kiểm tra thông tin ổ đĩa
+docker inspect D1
+docker volume inspect D1
+
+Xóa ổ đĩa
+docker volume rm D1
+
+Tạo 1 container chia sẻ dữ liệu từ máy host với container
+docker run -it -v /home/tuannt4/Documents/devops/docker/tuts/share-data:/home/share-data ubuntu-vim:2.0
+docker run -it -v /home/tuannt4/Documents/devops/docker/tuts/share-data:/home/share-data --name C1 ubuntu-vim:2.0
+docker run -it --name C2 --volumes-from-C1 ubuntu-vim:2.0
+docker run -it --name C3 --mount source=D2,target=/home/disk2 ubuntu-vim:2.0
+docker run -it --name C4 -v D3:/home/share-date ubuntu-vim:2.0
+
+---------------------------------------------------------------------
+
+docker-cheat-sheet
+
+Liệt kê volume
+docker volume ls
+
+Xem thông tin volume
+docker volume inspect DATA
+
+Xóa volume
+docker volume rm DATA
+docker volume prune
+
+Tạo volume
+docker volume create DATA
+docker volume create --opt type=none --opt o=bind --opt device=/home/tuannt4/Documents/devops/docker/tuts/share-data DATA1
+
+Tạo, chạy container, ánh xạ thư mục máy host vào thư mục container
+docker run -it -v /home/tuannt4/Documents/devops/docker/tuts/share-data:/home/data --name B1 busybox
+docker run -it --volumes-from B1 --name B2 busybox
+docker run -it -v DATA:/home/data --name B3 busybox
+docker run -it --mount source=DATA,target=/home/data --name B4 busybox
+docker run -it --mount source=/home/tuannt4/Documents/devops/docker/tuts/share-data,target=/home/data --name B4 busybox
+
+---------------------------------------------------------------------

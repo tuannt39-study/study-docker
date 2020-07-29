@@ -1,0 +1,25 @@
+
+# Yêu cầu:
+# Xây dựng 1 image mới từ image cơ sở centos:8.2.2004
+# Image mới này được cài đặt sẵn httpd, htop, ping (mặc định có), vim
+# Copy 1 số file dữ liệu index.html vào /var/wwww/html
+# Chạy nền httpd khi container chạy từ image
+
+FROM centos:8.2.2004
+
+RUN dnf update -y
+RUN dnf install httpd httpd-tools vim epel-release -y
+RUN dnf update -y
+RUN dnf install htop -y
+
+# Thư viện làm việc mặc định
+WORKDIR /var/www/html/
+
+# Port làm việc
+EXPOSE 80
+
+ADD ./test.html /var/www/html/
+
+# Chạy tiến trình httpd
+ENTRYPOINT [ "httpd" ]
+CMD [ "-D", "FOREGROUND" ]

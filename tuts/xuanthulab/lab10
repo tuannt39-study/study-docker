@@ -1,0 +1,92 @@
+
+Tra cứu thông tin image và giám sát các container trong Docker
+https://xuanthulab.net/tra-cuu-thong-tin-image-va-giam-sat-cac-container-trong-docker.html
+
+Mô tả hoạt động của docker
+
+Container là một hộp kín để ứng dụng hoạt động. Mỗi container đều được tạo dựa trên 1 image.
+Khi bạn chạy một container xuất phát từ image, có 1 lớp layer được phép ghi thêm vào trên định của image.
+Sau đó khi lưu container này thành image mới, một lớp image mới được thêm vào.
+
+Image như ảnh chụp lại các cấu hình của container. Một image luôn ở trạng thái chỉ đọc, mọi thứ muốn
+thay đổi phải lưu ở tầng trên cùng của container, và tầng này có thể lưu tạo thành image mới và nó lại
+thành trạng thái chỉ đọc. Với quy trình như vậy, mỗi image đều phụ thuộc vào một hoặc nhiều image cha.
+
+Platform image là 1 image mà nó không có image cha. Những image loại này chứa các biến môi trường, các gói,
+các tiện ích để ứng dụng ảo hóa chạy, nó cũng chỉ đọc.
+
+Registry là khi chứa các image, nơi chia sẻ, tải về các image.
+
+Dockerfile là một file cấu hình với cấu trúc để tạo ra image. Sử dụng Dockerfile là cách tự động tạo, chạy, sử dụng các container
+
+Xuất phát từ 1 Platform image, chạy thành container, vậy đang hoạt động với cấu trúc bao gồm Platform image + tầng được ghi.
+Lúc này thêm các thành phần vào tầng được ghi, rồi commit thành image mới. Ở image mới này, tầng được phép ghi lưu thành
+1 tầng chỉ đọc tên image1. Quy trình như vậy bạn có thể tạo thành nhiều image khác nhau. Mỗi tầng này chỉ đọc, chỉ có
+container đang chạy được phép ghi.
+
+Sử dụng các lệnh docker để kiểm tra các image, các thông tin trạng thái của container
+
+Liệt kê image
+docker images
+
+Liệt kê các thao tác để hình thành image httpd
+docker image history httpd
+
+Tra cứu thông tin chi tiết của 1 image, container
+Layers là các lớp tạo lên image này, image được xây dựng lên từ 1 image cơ sở nào đó, rồi bổ sung
+thêm các gói ứng dụng, dữ liệu, thay đổi cấu hình. Mỗi lần thay đổi như vậy nó tạo thành 1 lớp image
+docker inspect httpd:2.3.43
+docker inspect c-php
+
+Xem thay đổi file, cầu trúc thư mục của container, từ thời điểm khởi tạo đến hiện tại
+1 container được sinh ra từ 1 image, sau khi được chạy thì nó có thể cài thêm, bổ sung các gói ứng dụng,
+từ đó nó thay đổi cấu trúc file, thư mục ở trong container
+docker diff c-httpd
+
+Thử truy cập vào c-httpd rồi thay đổi, thêm sửa file, thư mục nào đó, rồi sử dụng lại lệnh trên để kiểm 
+tra những thay đổi
+docker exec -it c-httpd bash
+cd /home
+touch 1.txt
+cd /var/log
+rm dpkg.log
+exit 
+docker diff c-httpd
+
+Kiểm tra log của container
+docker logs c-php
+docker logs --tail 10 c-php
+docker logs --tail 10 -f c-php
+
+Giám sát thông tin cpu, mem, network,...
+docker stats
+docker stats c-mysql
+
+Docker tự khởi động lại container khi bị dừng
+docker run -it --network www-net --name c-mysql -h mysql \
+  -v "/mycode/db":/var/lib/mysql1 -e MYSQL_ROOT_PASSWORD=abc123 \
+  --restart=always mysql
+
+---------------------------------------------------------------------
+
+docker-cheat-sheet
+
+Xem thông tin
+docker container inspect B1
+docker image inspect myimage
+docker network inspect my-network
+docker volume inspect DATA
+
+Xem log
+docker logs -f --tail B1
+
+Thông tin cpu, ram,... của container
+docker stats
+
+Lịch sử hình thành image
+docker image history myimage
+
+Thay đổi cấu trúc file, folder container
+docker diff B1
+
+---------------------------------------------------------------------

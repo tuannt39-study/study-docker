@@ -1,0 +1,30 @@
+version: "3"
+
+networks: 
+  my-network:
+    driver: bridge
+
+volumes: 
+  dir-db:
+    - type: none
+    - o: bind
+    - device: /home/tuannt4/Documents/devops/docker/tuts/xuanthulab/data/lab13/db
+
+services: 
+  sapo-sql-server:
+    image: 'mcr.microsoft.com/mssql/server:2017-latest'
+    container_name: sql-server-1
+    host: sql-server-1
+    restart: always
+    ports:
+      - '5434:5434'
+    environment:
+      SA_PASSWORD: 'Pass@word'
+      ACCEPT_EULA: 'Y'
+    healthcheck:
+      test: sqlcmd -S db1.internal.prod.example.com -U SA -P 'Alaska2017' -Q 'select distinct 1 from AdventureWorksDW2017.dbo.DimDate'
+    networks: 
+      - my-network
+    volumes: 
+      - dir-db:/var/opt/mssql/data
+      - ./backup:/var/opt/mssql/backup

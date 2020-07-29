@@ -1,0 +1,41 @@
+
+---------------------------------------------------------------------
+
+https://docs.docker.com/
+
+https://docs.docker.com/get-started/overview/
+
+https://docs.docker.com/engine/reference/run/
+https://docs.docker.com/compose/reference/overview/
+
+---------------------------------------------------------------------
+
+Kiểm tra phiên bản docker
+docker --version
+
+Thông tin hệ thống docker
+docker info
+
+Tải image từ https://hub.docker.com/
+docker pull busybox:1.32.0
+
+Liệt kê các image
+docker images
+docker images -a
+
+Liệt kê các container
+docker ps
+docker ps -a
+
+Deploy với docker stack
+docker stack deploy -c mariadb.local.yml social
+
+Xóa service
+docker service rm social_mariadb
+
+docker service scale social_mariadb=1
+
+docker service update --force social_mariadb
+
+
+---------------------------------------------------------------------

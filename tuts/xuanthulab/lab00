@@ -1,0 +1,118 @@
+
+Sử dụng Docker
+https://xuanthulab.net/docker/
+
+Docker là một dự án nguồn mở nó cho phép tự động hóa việc triển khai các ứng dụng bên trong các Container (Linux),
+cung như cung cấp chức năng đóng gói các thành phần cần để chạy ứng dụng vào Container.
+Docker cung cấp công cụ CLI (Command Line Interface) để quản lý vòng đời của các container.
+Sử dụng Docker là cách nhanh chóng để phát triển, triển khai, bảo trì các ứng dụng.
+
+Docker có sự khác biệt so với máy ảo, máy ảo là một hệ thống đầy đủ với tất cả các phần mềm, hệ điều hành.
+Các Docker Container thì cung cấp cho ứng dụng một môi trường cách ly và được cấu hình tối thiểu để ứng dụng hoạt động được.
+Với Container nhân và các thành phần của hệ điều hành được chia sẻ.
+
+Một số ưu điểm của Docker Container so với công nghệ ảo hóa:
+
+Tạo và hủy container rất nhanh và dễ dàng, Máy áo thì cần cài đặt đầy đủ mọi thứ và cần nhiều tài nguyên hệ thống hơn.
+Container rất nhỏ, vì vậy mà trên một máy Host số container chạy song song với nhau nhiều hơn số máy áo chạy song song.
+
+---------------------------------------------------------------------
+
+docker-cheat-sheet
+
+Kiểm tra phiên bản docker
+docker --version
+
+Thông tin hệ thống docker
+docker info
+
+Tải image từ https://hub.docker.com/
+docker pull busybox:1.32.0
+
+Liệt kê các image
+docker images
+docker images -a
+
+Liệt kê các container
+docker ps
+docker ps -a
+
+Chạy container
+docker run -it --name busybox1 -h busybox busybox:1.32.0
+
+Tham số thêm khi chạy container
+  Ánh xạ thư mục máy host vào container
+  -v /home/tuannt4/Documents/devops/docker/tuts/share-data:/home/data
+
+  Nhận thưc mục đã ánh xạ thư mục máy host từ container khác
+  --volumes-from busybox1
+
+  Ánh xạ port máy host vào post máy container
+  -p 8888:80
+
+  Thiết lập để container tự khởi động lại
+  --restart=always
+
+Vào terminal container đang chạy
+docker attach busybox1
+
+Chạy lệnh command trên container đang hoạt động
+docker exec -it busybox1 bash
+
+Dừng container
+docker stop busybox1
+
+Chạy container
+docker start busybox1
+
+Khởi động lại container
+docker restart busybox1
+
+Xóa container
+docker rm busybox1
+docker rm -f busybox1
+
+Thoát -it terminal nhưng container vẫn chạy
+Ctrl + P + Q
+
+Lưu container đang dừng thành 1 image
+docker commit busybox1 myimage:1.1
+
+Lưu image thành file
+docker save --output myimage.tar myimage
+
+Nạp image từ file
+docker load -i myimage.tar
+
+Đổi tên image
+docker tag myimage myimagenew:1.1
+
+Liệt kê các network
+docker network ls
+
+Tạo network
+docker network create --driver bridge my-network
+
+Kết nối container vào mạng my-network
+docker network connect my-network busybox1
+
+Tra cứu thông tin image, container
+docker inspect busybox1
+docker inspect myimagenew
+docker inspect my-network
+docker image inspect myimagenew
+docker network inspect my-network
+
+Thông tin lịch sử image
+docker history myimagenew
+
+Sự thay đổi cấu trúc file, thư mục của container
+docker diff busybox1
+
+Xem log container
+docker logs -f --tail 10 busybox1
+
+Thông tin cpu, mem,... các container
+docker stats
+
+---------------------------------------------------------------------

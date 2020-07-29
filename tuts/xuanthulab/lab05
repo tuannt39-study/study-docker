@@ -1,0 +1,91 @@
+
+Mạng network bridge trong Docker kết nối các container với nhau
+https://xuanthulab.net/mang-network-bridge-trong-docker-ket-noi-cac-container-voi-nhau.html
+
+Tham số rm được thêm vào, thì khi thoát, container sẽ tự động xóa luôn
+docker run -it rm busybox
+
+Liệt kê network
+docker network ls
+
+3 network mặc định: bridge, host, none
+Mạng bridge được các container mặc định kết nối vào
+
+Kiểm tra thông tin network
+docker network inspect bridge
+
+Tạo 2 container B1, B2 từ image busybox
+docker run -it --name B1 busybox
+docker run -it --name B2 busybox
+
+docker inspect B1
+docker inspect B2
+
+Do các container này mặc định kết nối vào cùng 1 mạng bridge, nên 2 container này có thể ping được với nhau
+và ping được ra mạng ngoài
+ping 172.17.0.2
+ping 172.17.0.3
+ping google.com
+
+Tạo máy chủ web httpd mặc định ở post 80 ở cả 2 container B1, B2
+cd /var/wwww
+httpd
+vi index.html
+
+Vào container B1 request đến B2
+wget -O - 172.17.0.3
+
+-> Kết nối được, hiển thị nội dung ở file index.html đã tạo
+
+Để máy host có thể truy cập được vào bên trong container, thì khi tạo container ta phải ánh xạ port của host với port
+của container. Ví dụ ta ánh xạ port 8888 của máy host với địa chỉ 127.0.0.1 (localhost) đến port 80 của container
+docker run -it --name U1 -h busyboxU1 -p 8888:80 busybox
+
+Tạo máy chủ web httpd mặc định ở post 80 ở container U1
+cd /var/wwww
+httpd
+vi index.html
+
+Tại máy host sẽ truy cập được đến container U1 thông qua port 8888 khi truy cập vào địa chỉ 127.0.0.1:8888
+
+Ngoài các network mặc định mà docker đã tạo ra, chúng ta có thể tạo thêm nhiều mạng cầu bridge khác.
+Áp dụng trong trường hợp nếu chúng ta không muốn tất cả các container đều kết nối vào 1 mạng.
+Mà chúng ta muốn tạo ra những mạng khác nhau để chúng ta cách ly 1 số container khác nhau
+
+Tạo network
+docker network create --driver bridge network1
+docker network create --driver bridge mynetwork
+
+Xóa network
+docker network rm network1
+
+Tạo container kết nối vào mynetwork
+docker run -it --name B3 --network mynetwork busybox
+docker run -it --name B4 --network mynetwork -p 9999:80 busybox
+
+docker network inspect mynetwork
+
+Tạo máy chủ web httpd mặc định ở post 80 ở container B4
+cd /var/wwww
+httpd
+vi index.html
+
+Tại máy host sẽ truy cập được đến container B4 thông qua port 9999 khi truy cập vào địa chỉ 127.0.0.1:9999
+
+Từ container B3
+Thử ping đến B1, B2 -> không được
+Thử ping đến B4 -> ok
+
+Khi tạo mạng khác nhau, để cách ly 1 nhóm những container khác nhau vào 1 mạng đó.
+
+Gán network cho 1 container đang chạy
+Kết nối B3 thêm network bridge mặc định
+docker network connect bridge B3
+
+docker network inspect bridge
+docker network inspect mynetwork
+
+Từ container B3
+Thử ping đến B1, B2 -> ok
+Thử ping đến B4 -> ok
+wget -O - 172.17.0.3 -> ok

@@ -1,0 +1,31 @@
+
+Cài đặt PHP
+https://xuanthulab.net/mang-network-bridge-trong-docker-ket-noi-cac-container-voi-nhau.html
+
+Tải image PHP 8.0-rc-fpm
+docker pull php:8.0-rc-fpm
+
+Tạo mạng cầu www-net
+docker network create --driver bridge www-net
+
+Tạo thư mục chia sẻ dữ liệu máy host, container
+docker volume create --opt device=/home/tuannt4/Documents/devops/docker/tuts/xuanthulab/data --opt type=none --opt o=bind DATA
+
+Trong thư mục data tạo thêm thư mục wwww, rồi tạo tệp index.html trong thư mục wwww
+
+Chạy nền container c-php mà không truy cập vào, mặc định nó chạy port 9000
+docker run -d --name c-php -h php -v DATA:/home/data --network www-net php:8.0-rc-fpm
+
+Ở thư mục wwww ngoài máy host
+Tạo thêm file test.php
+<?php
+  phpinfo();
+
+Truy cập vào container c-php
+docker exec -it c-php bash
+Tự động truy cập vào /var/www/html
+cd /home/data/www
+
+Chạy thử file test.php
+php test.php
+php --version

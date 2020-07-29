@@ -1,0 +1,63 @@
+
+Cài đặt MySQL
+https://xuanthulab.net/mang-network-bridge-trong-docker-ket-noi-cac-container-voi-nhau.html
+
+Khi tạo và chạy các container thì docker cho phép chúng ta thiết lập các biến môi trường
+cho container đó thông qua tham số -e
+docker run -it --rm -e BIEN1=VALUE1 -e BIEN2=VALUE2 busybox
+
+Kiểm tra các biến môi trường
+echo $BIEN1
+echo $BIEN2
+
+Tải image MySQL
+docker pull mysql:8.0.20
+
+Port mặc định: 3304
+File config: /etc/mysql/my.cnf
+https://dev.mysql.com/doc/refman/8.0/en/environment-variables.html
+Tài khoản mặc định: root
+Biến thiết lập mật khẩu tài khoản root: MYSQL_ROOT_PASSWORD
+Cơ sở dữ liệu: /var/lib/mysql
+Để có thể đảm bảo các hệ thống cũ có thể truy cập được mysql ta thêm vào file config:
+  [mysqld]
+  default-authentication-plugin=mysql_native_password
+
+Ta cũng sẽ tạo thư mục db để lưu trữ dữ liệu trên máy host, đề phòng khi ta xóa container sẽ không bị mất
+
+Chạy lần đầu container của image mysql để lấy file cấu hình rồi xóa luôn container
+docker run --rm -v DATA:/home/data mysql:8.0.20 cp /etc/mysql/my.cnf /home/data
+
+Thêm cấu hình vào cuối file:
+  default-authentication-plugin=mysql_native_password
+
+Chạy container MySQL
+docker run -e MYSQL_ROOT_PASSWORD=abc123 -v DATA:/home/data -v /home/tuannt4/Documents/devops/docker/tuts/xuanthulab/data/my.cnf:/etc/mysql/my.cnf -v /home/tuannt4/Documents/devops/docker/tuts/xuanthulab/data/db:/var/lib/mysql --name c-mysql -h mysql -p 3306:3306 mysql:8.0.20 
+docker run -e MYSQL_ROOT_PASSWORD=abc123 -v /home/tuannt4/Documents/devops/docker/tuts/xuanthulab/data/my.cnf:/etc/mysql/my.cnf -v /home/tuannt4/Documents/devops/docker/tuts/xuanthulab/data/db:/var/lib/mysql --name c-mysql mysql:8.0.20 
+
+Gặp lỗi -- mysqld: [Warning] World-writable config file '/etc/mysql/my.cnf' is ignored.
+Nên bỏ qua cấu hình my.cnf
+docker run -e MYSQL_ROOT_PASSWORD=abc123 -v DATA:/home/data -v /home/tuannt4/Documents/devops/docker/tuts/xuanthulab/data/db:/var/lib/mysql --name c-mysql -h mysql -p 3306:3306 mysql:8.0.20 
+
+Kiểm tra truy cập mysql
+docker exec -it c-mysql bash
+mysql -uroot -pabc123
+mysql -uroot
+
+Thử 1 số câu lệnh
+show databases;
+use mysql;
+show tables;
+
+#Từ dấu nhắc MySQL, Tạo một user tên testuser với password là testpass
+create user 'testuser'@'%' identified by 'testpass';
+select User from user;
+#Tạo db có tên db_testdb
+create database db_testdb;
+show databases;
+#Cấp quyền cho user testuser trên db - db_testdb
+grant all privileges on db_testdb.* to 'testuser'@'%';
+flush privileges;
+#Xem các database đang có, kết quả có db bạn vừa tạo
+show databases;            
+exit;

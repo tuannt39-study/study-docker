@@ -1,0 +1,34 @@
+
+Cài đặt HTTPD
+https://xuanthulab.net/mang-network-bridge-trong-docker-ket-noi-cac-container-voi-nhau.html
+
+Tải image HTTPD
+docker pull httpd:2.4.43
+
+Khi máy chủ HTTPD chạy nó sẽ nạp file cấu hình ở dường dẫn trong container
+/usr/local/apache2/conf/httpd.conf
+Trước khi chạy container chúng ta muốn lấy file này ra và tùy biến nó
+Trong đó chúng ta tùy biến các vấn đề như thiết lập các host, php handler
+
+Đầu tiên chúng ta chạy container HTTPD, để copy file cấu hình, rồi xóa luôn container
+docker run --rm -v DATA:/home/data httpd:2.4.43 cp /usr/local/apache2/conf/httpd.conf /home/data
+
+Tùy chỉnh cấu hình file httpd.conf
+
+Kích hoạt module
+LoadModule proxy_module modules/mod_proxy.so
+LoadModule proxy_fcgi_module modules/mod_proxy_fcgi.so
+
+Thêm vào cuối file
+AddHandler "proxy:fcgi://c-php:9000" .php
+
+Cấu hình lại thư mục làm việc
+DocumentRoot "/home/data/www"
+<Directory "/home/data/www">
+
+Chạy container HTTPD
+docker run --network www-net --name c-httpd -h httpd -p 9999:80 -p 443:443 -v DATA:/home/data -v /home/tuannt4/Documents/devops/docker/tuts/xuanthulab/data/httpd.conf:/usr/local/apache2/conf/httpd.conf httpd:2.4.43
+
+Kiểm tra xem HTTPD đã chạy chưa?
+127.0.0.1:9999
+127.0.0.1:9999/test.php
