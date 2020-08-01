@@ -33,9 +33,13 @@ docker stack deploy -c mariadb.local.yml social
 Xóa service
 docker service rm social_mariadb
 
+Điều chỉnh số lượng container của service
 docker service scale social_mariadb=1
 
+Cập nhật lại service
 docker service update --force social_mariadb
 
+Chạy container, sao chép tệp, rồi xóa container
+docker run --rm -p 3336:3306 -v /home/tuannt4/Documents/devops/social-monitor/social_deploy/mariadb/config:/home/data mariadb:10.3.13 cp /etc/mysql/my.cnf /home/data
 
 ---------------------------------------------------------------------
